@@ -33,13 +33,16 @@ import {
  * COMPOSITION CLASS: DataPoint
  */
 class DataPoint {
-  x: number;
-  y: number;
+  protected x: number;
+  protected y: number;
 
   constructor(x: number, y: number) {
     this.x = Number(x);
     this.y = Number(y);
   }
+
+  getX(): number { return this.x; }
+  getY(): number { return this.y; }
 }
 
 /**
@@ -47,7 +50,7 @@ class DataPoint {
  * Encapsulates raw array observations and performs statistical reductions
  */
 class Dataset {
-  points: DataPoint[];
+  protected points: DataPoint[];
 
   constructor(points: Array<DataPoint | { x: number; y: number }> = []) {
     this.points = points.map(p =>
@@ -56,6 +59,11 @@ class Dataset {
         : new DataPoint(p.x, p.y)
     );
   }
+
+  getPoints(): DataPoint[] {
+    return [...this.points];
+  }
+
   addPoint(x, y) {
     this.points.push(new DataPoint(x, y));
   }
@@ -68,25 +76,25 @@ class Dataset {
 
   get meanX() {
     if (this.count === 0) return 0;
-    return this.points.reduce((sum, p) => sum + p.x, 0) / this.count;
+    return this.points.reduce((sum, p) => sum + p.getX(), 0) / this.count;
   }
 
   get meanY() {
     if (this.count === 0) return 0;
-    return this.points.reduce((sum, p) => sum + p.y, 0) / this.count;
+    return this.points.reduce((sum, p) => sum + p.getY(), 0) / this.count;
   }
 
   get varianceX() {
     if (this.count <= 1) return 0;
     const mx = this.meanX;
-    return this.points.reduce((sum, p) => sum + Math.pow(p.x - mx, 2), 0) / (this.count - 1);
+    return this.points.reduce((sum, p) => sum + Math.pow(p.getX() - mx, 2), 0) / (this.count - 1);
   }
 
   get covariance() {
     if (this.count <= 1) return 0;
     const mx = this.meanX;
     const my = this.meanY;
-    return this.points.reduce((sum, p) => sum + (p.x - mx) * (p.y - my), 0) / (this.count - 1);
+    return this.points.reduce((sum, p) => sum + (p.getX() - mx) * (p.getY() - my), 0) / (this.count - 1);
   }
 }
 
@@ -95,11 +103,11 @@ class Dataset {
  * Defines standard OOP interface for all statistical distributions
  */
 class Distribution {
-  type: string;
-  params: Record<string, any>;
-  dataset: Dataset | null;
-  instanceId: string;
-  createdAt: string;
+  protected type: string;
+  protected params: Record<string, any>;
+  protected dataset: Dataset | null;
+  protected instanceId: string;
+  protected createdAt: string;
 
   constructor(type: string, params: Record<string, any> = {}, dataset: Dataset | null = null) {
     if (this.constructor === Distribution) {
@@ -129,6 +137,10 @@ class Distribution {
     throw new Error("Abstract method 'formatFormula()' must be implemented.");
   }
 
+  getType(): string {
+    return this.type;
+  }
+
   getClassName() {
     return this.constructor.name;
   }
@@ -138,8 +150,8 @@ class Distribution {
  * CONCRETE CLASS 1: NormalDistribution (Gaussian)
  */
 class NormalDistribution extends Distribution {
-  mean: number;
-  stdDev: number;
+  protected mean: number;
+  protected stdDev: number;
 
   constructor(mean = 0, stdDev = 1) {
     super('Normal (การแจกแจงปกติ)', { mean: Number(mean), stdDev: Number(stdDev) });
@@ -208,8 +220,8 @@ class NormalDistribution extends Distribution {
  * CONCRETE CLASS 2: BinomialDistribution
  */
 class BinomialDistribution extends Distribution {
-  n: number;
-  p: number;
+  protected n: number;
+  protected p: number;
 
   constructor(n = 10, p = 0.5) {
     const validN = Math.max(1, Math.floor(Number(n)));
@@ -274,7 +286,7 @@ class BinomialDistribution extends Distribution {
  * CONCRETE CLASS 3: PoissonDistribution
  */
 class PoissonDistribution extends Distribution {
-  lambda: number;
+  protected lambda: number;
 
   constructor(lambda = 3) {
     const validLambda = Math.max(0.1, Number(lambda));
@@ -331,11 +343,11 @@ class PoissonDistribution extends Distribution {
  * Demonstrates Composition via holding a Dataset instance
  */
 class LinearRegressionModel extends Distribution {
-  declare dataset: Dataset;
+  declare protected dataset: Dataset;
 
-  slope: number = 0;
-  intercept: number = 0;
-  rSquared: number = 0;
+  protected slope: number = 0;
+  protected intercept: number = 0;
+  protected rSquared: number = 0;
 
   constructor(dataset = new Dataset()) {
     super('Linear Regression (การถดถอยเชิงเส้น)', {}, dataset);
@@ -358,8 +370,8 @@ class LinearRegressionModel extends Distribution {
 
     // R-squared
     const my = this.dataset.meanY;
-    const ssTot = this.dataset.points.reduce((sum, p) => sum + Math.pow(p.y - my, 2), 0);
-    const ssRes = this.dataset.points.reduce((sum, p) => sum + Math.pow(p.y - (this.slope * p.x + this.intercept), 2), 0);
+    const ssTot = this.dataset.getPoints().reduce((sum, p) => sum + Math.pow(p.getY() - my, 2), 0);
+    const ssRes = this.dataset.getPoints().reduce((sum, p) => sum + Math.pow(p.getY() - (this.slope * p.getX() + this.intercept), 2), 0);
     this.rSquared = ssTot !== 0 ? 1 - (ssRes / ssTot) : 0;
   }
 
@@ -575,7 +587,7 @@ export default function App() {
       fingerprint,
       userId: currentUser?.id || '',
       userName: currentUser?.name || 'Guest',
-      distributionType: activeDistributionObject.type,
+      distributionType: activeDistributionObject.getType(),
       inputParams,
       outputResult: {
         prob: activeSolveResult.probability.prob,
@@ -946,7 +958,7 @@ export default function App() {
                 <div className="flex justify-between items-center border-b border-slate-100 pb-4">
                   <h3 className="text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-2">
                     <Sliders className="w-4 h-4 text-sky-600" />
-                    ปรับพารามิเตอร์โจทย์ ({activeDistributionObject.type})
+                    ปรับพารามิเตอร์โจทย์ ({activeDistributionObject.getType()})
                   </h3>
                   <span className="text-[10px] font-mono text-sky-600 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
                     Class: {activeDistributionObject.getClassName()}
