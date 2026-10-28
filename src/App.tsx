@@ -300,6 +300,12 @@ class PoissonDistribution extends Distribution {
  * Demonstrates Composition via holding a Dataset instance
  */
 class LinearRegressionModel extends Distribution {
+  declare dataset: Dataset;
+
+  slope: number = 0;
+  intercept: number = 0;
+  rSquared: number = 0;
+
   constructor(dataset = new Dataset()) {
     super('Linear Regression (การถดถอยเชิงเส้น)', {}, dataset);
     this.calculateRegression();
