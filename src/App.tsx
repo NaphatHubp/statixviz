@@ -33,7 +33,10 @@ import {
  * COMPOSITION CLASS: DataPoint
  */
 class DataPoint {
-  constructor(x, y) {
+  x: number;
+  y: number;
+
+  constructor(x: number, y: number) {
     this.x = Number(x);
     this.y = Number(y);
   }
@@ -46,7 +49,7 @@ class DataPoint {
 class Dataset {
   points: DataPoint[];
 
-  constructor(points = []) {
+  constructor(points: Array<DataPoint | { x: number; y: number }> = []) {
     this.points = points.map(p =>
       p instanceof DataPoint
         ? p
@@ -92,7 +95,13 @@ class Dataset {
  * Defines standard OOP interface for all statistical distributions
  */
 class Distribution {
-  constructor(type, params = {}, dataset = null) {
+  type: string;
+  params: Record<string, any>;
+  dataset: Dataset | null;
+  instanceId: string;
+  createdAt: string;
+
+  constructor(type: string, params: Record<string, any> = {}, dataset: Dataset | null = null) {
     if (this.constructor === Distribution) {
       throw new Error("Cannot instantiate Abstract Class 'Distribution' directly.");
     }
@@ -129,6 +138,9 @@ class Distribution {
  * CONCRETE CLASS 1: NormalDistribution (Gaussian)
  */
 class NormalDistribution extends Distribution {
+  mean: number;
+  stdDev: number;
+
   constructor(mean = 0, stdDev = 1) {
     super('Normal (การแจกแจงปกติ)', { mean: Number(mean), stdDev: Number(stdDev) });
     this.mean = Number(mean);
