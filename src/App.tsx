@@ -44,10 +44,15 @@ class DataPoint {
  * Encapsulates raw array observations and performs statistical reductions
  */
 class Dataset {
-  constructor(points = []) {
-    this.points = points.map(p => p instanceof DataPoint ? p : new DataPoint(p.x, p.y));
-  }
+  points: DataPoint[];
 
+  constructor(points = []) {
+    this.points = points.map(p =>
+      p instanceof DataPoint
+        ? p
+        : new DataPoint(p.x, p.y)
+    );
+  }
   addPoint(x, y) {
     this.points.push(new DataPoint(x, y));
   }
@@ -191,10 +196,18 @@ class NormalDistribution extends Distribution {
  * CONCRETE CLASS 2: BinomialDistribution
  */
 class BinomialDistribution extends Distribution {
+  n: number;
+  p: number;
+
   constructor(n = 10, p = 0.5) {
     const validN = Math.max(1, Math.floor(Number(n)));
     const validP = Math.min(1, Math.max(0, Number(p)));
-    super('Binomial (การแจกแจงทวิภาค)', { n: validN, p: validP });
+
+    super('Binomial (การแจกแจงทวิภาค)', {
+      n: validN,
+      p: validP
+    });
+
     this.n = validN;
     this.p = validP;
   }
@@ -249,9 +262,15 @@ class BinomialDistribution extends Distribution {
  * CONCRETE CLASS 3: PoissonDistribution
  */
 class PoissonDistribution extends Distribution {
+  lambda: number;
+
   constructor(lambda = 3) {
     const validLambda = Math.max(0.1, Number(lambda));
-    super('Poisson (การแจกแจงพัวซอง)', { lambda: validLambda });
+
+    super('Poisson (การแจกแจงพัวซอง)', {
+      lambda: validLambda
+    });
+
     this.lambda = validLambda;
   }
 
