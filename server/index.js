@@ -7,7 +7,7 @@ import dns from 'node:dns';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
-import app from '../server/index.js';
+
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 const app = express();
